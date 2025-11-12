@@ -88,7 +88,7 @@ const mergeModuleConfig = (config) => {
 export const getCurrentUrl = () => window.location.href;
 
 export const getPageText = () => {
-  const text = document.body.textContent;
+  const text = document.body.querySelectorAll("p").forEach(a=>e+=" "+a.textContent);
   if (!text || text.length < CONSTANTS.MIN_TEXT_LENGTH) {
     logMessage(`${CONSTANTS.LOG_PRE_FIX} Not enough text content (length: ${text?.length || 0}) for processing.`);
     return null;
@@ -303,7 +303,7 @@ const initSummarizer = async () => {
   if (summaryText) {
     // The API returns a single summary string. We treat this string as a single keyword.
     // If multiple keywords were desired from the summary, further processing would be needed here.
-    detectedKeywords = [summaryText];
+    detectedKeywords = summaryText;
     logMessage(`${CONSTANTS.LOG_PRE_FIX} Summary processed and new keywords generated:`, detectedKeywords);
 
     if (moduleConfig.summarizer.cacheInLocalStorage === true) {
