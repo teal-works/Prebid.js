@@ -1,13 +1,24 @@
 ARG VARIANT="20"
+# Use the base image that provides Node.js 20 (or your ARG-defined version)
 FROM mcr.microsoft.com/vscode/devcontainers/javascript-node:${VARIANT}
 
+# --------------------------------------------------------------------------------
+# Install Yarn's key
+# --------------------------------------------------------------------------------
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor > /usr/share/keyrings/yarn-archive-keyring.gpg
 
-# [Optional] Uncomment this section to install additional OS packages.
-# RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-#     && apt-get -y install --no-install-recommends <your-package-list-here>
+# --------------------------------------------------------------------------------
+# Install Google Chrome and XVFB for Headless Testing (REVISED)
+# This uses the modern method for adding GPG keys, avoiding the 'apt-key' error.
+# --------------------------------------------------------------------------------
 
-RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-RUN echo "deb http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google.list
-RUN apt update
-RUN apt install -y google-chrome-stable xvfb
+# 1. Download the Google signing key and save it securely in the keyrings directory.
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub \
+    | gpg --dearmor -o /etc/apt/keyrings/google-chrome.gpg
+
+# 2. Add the Chrome repository, referencing the securely stored key.
+RUN echo "deb [signed-by=/etc/apt/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" \
+    > /etc/apt/sources.list.d/google-chrome.list
+
+# 3. Update package lists and install Chrome and XVFB (X Virtual Frame Buffer).
+RUN apt update && apt install -y google-chrome-stable xvfb
