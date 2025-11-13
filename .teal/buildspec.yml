@@ -17,6 +17,7 @@ phases:
     commands:
       - echo "Starting multi-publisher build..."
       - |
+        set -e
         for publisher in $PUBLISHERS; do
           NAME=$(echo $publisher | jq -r '.name')
           VERSION=$(echo $publisher | jq -r '.version')
@@ -25,25 +26,16 @@ phases:
           echo "Building $NAME from version $VERSION with modules: $MODULES"
 
           # Checkout the correct version
-          git checkout $VERSION || { echo "Failed to checkout $VERSION for $NAME"; exit 1; }
+          git checkout $VERSION
 
           # Run the gulp build
-          gulp build --enable GREEDY --modules="$MODULES" || { echo "Gulp build failed for $NAME"; exit 1; }
+          gulp build --enable GREEDY --modules="$MODULES"
 
           # Copy built file to output directory
-          cp build/dist/prebid.js $OUTPUT_DIR/${NAME}.js || { echo "Failed to copy prebid.js for $NAME"; exit 1; }
+          cp build/dist/prebid.js $OUTPUT_DIR/${NAME}.js
         done
 
   post_build:
     commands:
       - echo "Deploying built files to S3..."
-      - |
-        for file in $OUTPUT_DIR/*.js; do
-          echo "Uploading $file to s3://$S3_BUCKET/"
-          aws s3 cp "$file" s3://$S3_BUCKET/ || { echo "Failed to upload $file"; exit 1; }
-        done
-
-artifacts:
-  files:
-    - $OUTPUT_DIR/*.js
-  discard-paths: yes
+      - aws s3 cp $OUTPUT_DIR/ s3://$S3_BUCKET/ --recursive
