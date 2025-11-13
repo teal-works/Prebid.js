@@ -8,6 +8,7 @@ env:
 phases:
   pre_build:
     commands:
+      - set -e
       - echo "Preparing build..."
       - mkdir -p $OUTPUT_DIR
       - echo "Reading publisher build configuration..."
@@ -16,26 +17,28 @@ phases:
   build:
     commands:
       - echo "Starting multi-publisher build..."
-      - |
-        set -e
-        for publisher in $PUBLISHERS; do
-          NAME=$(echo $publisher | jq -r '.name')
-          VERSION=$(echo $publisher | jq -r '.version')
-          MODULES=$(echo $publisher | jq -r '.modules | join(",")')
+      - bash -c '
+          set -e
+          for publisher in '"$PUBLISHERS"'; do
+            NAME=$(echo $publisher | jq -r ".name")
+            VERSION=$(echo $publisher | jq -r ".version")
+            MODULES=$(echo $publisher | jq -r ".modules | join(\",\")")
 
-          echo "Building $NAME from version $VERSION with modules: $MODULES"
+            echo "Building $NAME from version $VERSION with modules: $MODULES"
 
-          # Checkout the correct version
-          git checkout $VERSION
+            # Checkout the correct version/tag
+            git checkout $VERSION
 
-          # Run the gulp build
-          gulp build --enable GREEDY --modules="$MODULES"
+            # Run the gulp build
+            gulp build --enable GREEDY --modules="$MODULES"
 
-          # Copy built file to output directory
-          cp build/dist/prebid.js $OUTPUT_DIR/${NAME}.js
-        done
+            # Copy built file to output directory
+            cp build/dist/prebid.js $OUTPUT_DIR/${NAME}.js
+          done
+        '
 
   post_build:
     commands:
+      - set -e
       - echo "Deploying built files to S3..."
       - aws s3 cp $OUTPUT_DIR/ s3://$S3_BUCKET/ --recursive
