@@ -21,21 +21,19 @@ phases:
 
   build:
     commands:
+      - set -e
       - echo "Starting multi-publisher build..."
-      - bash -c '
-          set -e
-          for publisher in '"$PUBLISHERS"'; do
-            NAME=$(echo $publisher | jq -r ".name")
-            VERSION=$(echo $publisher | jq -r ".version")
-            MODULES=$(echo $publisher | jq -r ".modules | join(\",\")")
-            
-            echo "Building $NAME from version $VERSION with modules: $MODULES"
-            git checkout $VERSION
-            gulp build --enable GREEDY --modules="$MODULES"
-            cp build/dist/prebid.js $OUTPUT_DIR/${NAME}.js
-          done
-        '
-
+      - |
+        for publisher in $PUBLISHERS; do
+          NAME=$(echo $publisher | jq -r ".name")
+          VERSION=$(echo $publisher | jq -r ".version")
+          MODULES=$(echo $publisher | jq -r ".modules | join(\",\")")
+          
+          echo "Building $NAME from version $VERSION with modules: $MODULES"
+          git checkout $VERSION
+          gulp build --enable GREEDY --modules="$MODULES"
+          cp build/dist/prebid.js $OUTPUT_DIR/${NAME}.js
+        done
   post_build:
     commands:
       - set -e
