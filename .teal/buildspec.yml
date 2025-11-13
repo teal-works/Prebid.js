@@ -11,10 +11,10 @@ phases:
       - set -e
       - echo "Preparing build..."
       - mkdir -p $OUTPUT_DIR
+
       - echo "Reading publisher build configuration..."
       - PUBLISHERS=$(jq -c '.publishers[]' .teal/config.json)
 
-      # Install Gulp globally and project dependencies
       - echo "Installing Gulp CLI and npm dependencies..."
       - npm install -g gulp-cli
       - npm ci
@@ -28,7 +28,7 @@ phases:
             NAME=$(echo $publisher | jq -r ".name")
             VERSION=$(echo $publisher | jq -r ".version")
             MODULES=$(echo $publisher | jq -r ".modules | join(\",\")")
-
+            
             echo "Building $NAME from version $VERSION with modules: $MODULES"
             git checkout $VERSION
             gulp build --enable GREEDY --modules="$MODULES"
