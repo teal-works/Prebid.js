@@ -1,0 +1,31 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - git fetch --tags --prune
+  build:
+    commands:
+      - mkdir -p output
+      - echo "Reading publisher configuration from .teal/config.json"
+      - publishers=$(jq -c '.publishers[]' .teal/config.json)
+      - |
+        for client in $publishers; do
+          name=$(echo $client | jq -r '.name')
+          version=$(echo $client | jq -r '.version')
+          modules=$(echo $client | jq -r '.modules | join(",")')
+
+          echo "Building $name from $version"
+          git checkout $version
+          gulp build --modules="$modules"
+
+          cp build/dist/prebid.js "output/${name}.js"
+        done
+  post_build:
+    commands:
+      - echo "Build complete. Output files:"
+      - ls -l output
+artifacts:
+  files:
+    - output/*.js
+  discard-paths: yes

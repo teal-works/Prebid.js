@@ -1,0 +1,41 @@
+{
+    "publishers": [
+        {
+            "name": "gulfnews",
+            "version": "v10.12.0",
+            "modules": [ 
+                "userId",
+                "appnexusBidAdapter",
+                "improvedigitalBidAdapter",
+                "invibesBidAdapter",
+                "smilewantedBidAdapter",
+                "teadsBidAdapter",
+                "consentManagementTcf",
+                "gptPreAuction",
+                "consentManagementUsp",
+                "currency",
+                "prebidServerBidAdapter",
+                "criteoIdSystem",
+                "id5IdSystem",
+                "pubProvidedIdSystem",
+                "sharedIdSystem"
+            ]
+        },
+        {
+            "name": "test",
+            "version": "v10.11.0",
+            "modules": [
+                "userId",
+                "consentManagementTcf",
+                "gptPreAuction",
+                "consentManagementUsp",
+                "currency",
+                "prebidServerBidAdapter",
+                "criteoIdSystem",
+                "id5IdSystem",
+                "pubProvidedIdSystem",
+                "sharedIdSystem"
+            ]
+        }
+    ]
+}
