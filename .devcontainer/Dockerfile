@@ -22,12 +22,3 @@ RUN echo "deb [signed-by=/etc/apt/keyrings/google-chrome.gpg] http://dl.google.c
 
 # 3. Update package lists and install Chrome and XVFB (X Virtual Frame Buffer).
 RUN apt update && apt install -y google-chrome-stable xvfb
-
-# --------------------------------------------------------------------------------
-# Copy and run the post-create script to prepare Node environment
-# --------------------------------------------------------------------------------
-# Copy the script from your build context into the image
-COPY .devcontainer/postCreate.sh /usr/local/bin/postCreate.sh
-
-# Make it executable and run it
-RUN chmod +x /usr/local/bin/postCreate.sh && /usr/local/bin/postCreate.sh
