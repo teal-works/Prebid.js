@@ -1,31 +1,49 @@
 version: 0.2
 
+env:
+  variables:
+    S3_BUCKET: "teal-prebid-js"
+    OUTPUT_DIR: "output"
+
 phases:
   pre_build:
     commands:
-      - git fetch --tags --prune
+      - echo "Preparing build..."
+      - mkdir -p $OUTPUT_DIR
+      - echo "Reading publisher build configuration..."
+      - PUBLISHERS=$(jq -c '.publishers[]' .teal/config.json)
+
   build:
     commands:
-      - mkdir -p output
-      - echo "Reading publisher configuration from .teal/config.json"
-      - publishers=$(jq -c '.publishers[]' .teal/config.json)
+      - echo "Starting multi-publisher build..."
       - |
-        for client in $publishers; do
-          name=$(echo $client | jq -r '.name')
-          version=$(echo $client | jq -r '.version')
-          modules=$(echo $client | jq -r '.modules | join(",")')
+        for publisher in $PUBLISHERS; do
+          NAME=$(echo $publisher | jq -r '.name')
+          VERSION=$(echo $publisher | jq -r '.version')
+          MODULES=$(echo $publisher | jq -r '.modules | join(",")')
 
-          echo "Building $name from $version"
-          git checkout $version
-          gulp build --modules="$modules"
+          echo "Building $NAME from version $VERSION with modules: $MODULES"
 
-          cp build/dist/prebid.js "output/${name}.js"
+          # Checkout the correct version
+          git checkout $VERSION || { echo "Failed to checkout $VERSION for $NAME"; exit 1; }
+
+          # Run the gulp build
+          gulp build --enable GREEDY --modules="$MODULES" || { echo "Gulp build failed for $NAME"; exit 1; }
+
+          # Copy built file to output directory
+          cp build/dist/prebid.js $OUTPUT_DIR/${NAME}.js || { echo "Failed to copy prebid.js for $NAME"; exit 1; }
         done
+
   post_build:
     commands:
-      - echo "Build complete. Output files:"
-      - ls -l output
+      - echo "Deploying built files to S3..."
+      - |
+        for file in $OUTPUT_DIR/*.js; do
+          echo "Uploading $file to s3://$S3_BUCKET/"
+          aws s3 cp "$file" s3://$S3_BUCKET/ || { echo "Failed to upload $file"; exit 1; }
+        done
+
 artifacts:
   files:
-    - output/*.js
+    - $OUTPUT_DIR/*.js
   discard-paths: yes
