@@ -30,14 +30,8 @@ phases:
             MODULES=$(echo $publisher | jq -r ".modules | join(\",\")")
 
             echo "Building $NAME from version $VERSION with modules: $MODULES"
-
-            # Checkout the correct version/tag
             git checkout $VERSION
-
-            # Run the gulp build
             gulp build --enable GREEDY --modules="$MODULES"
-
-            # Copy built file to output directory
             cp build/dist/prebid.js $OUTPUT_DIR/${NAME}.js
           done
         '
