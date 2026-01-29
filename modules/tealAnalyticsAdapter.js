@@ -6,28 +6,31 @@ import { logInfo, logError } from '../src/utils.js';
 const GVLID = 1378;
 const ADAPTER_CODE = 'teal';
 const analyticsType = 'endpoint';
-const analyticsEnpointUrl = 'https://analytics.auth.inc/someendpoint';
+const analyticsEndpointUrl = 'https://a.bids.ws/bids/imp';
 let initOptions = {};
+let isAdapterEnabled = false;
 
-let tealAdapter = Object.assign(adapter({url: analyticsEnpointUrl, analyticsType}), {
+let tealAdapter = Object.assign(adapter({url: analyticsEndpointUrl, analyticsType}), {
   track({eventType, args}) {
-    const bidResponse = args;
-    if (eventType === EVENTS.BID_WON && bidResponse.source === 'client') {
+    if (!isAdapterEnabled) {
+      return;
+    }
+    if (eventType === EVENTS.BID_WON && args.source === 'client') {
+      const bidResponse = args;
       const payload = {
         account: initOptions.account,
         adomain: bidResponse.meta?.advertiserDomains?.[0] || '',
-        auctionid: bidResponse.auctionId,
-        bidder: bidResponse.bidder,
-        bidid: bidResponse.requestId,
-        currency: bidResponse.currency,
-        impid: bidResponse.adUnitCode,
-        isclient: true,
-        mediatype: bidResponse.mediaType,
-        origprice: bidResponse.originalCpm,
-        origcurrency: bidResponse.originalCurrency,
-        price: bidResponse.cpm,
-        size: bidResponse.size,
-        url: window.location.href
+        auctionid: bidResponse.auctionId || '',
+        bidder: bidResponse.bidder || '',
+        bidid: bidResponse.requestId || '',
+        currency: bidResponse.currency || '',
+        impid: bidResponse.adUnitCode || '',
+        mediatype: bidResponse.mediaType || '',
+        origprice: String(bidResponse.originalCpm || ''),
+        origcurrency: bidResponse.originalCurrency || '',
+        price: String(bidResponse.cpm || ''),
+        size: bidResponse.size || '',
+        url: window.location.href || ''
       };
       const callbacks = {
         success: function(responseText, xhr) {
@@ -37,7 +40,7 @@ let tealAdapter = Object.assign(adapter({url: analyticsEnpointUrl, analyticsType
           logError(`Teal Analytics - ${eventType} event send failure. Status: ${xhr.status} (${statusText});`);
         }
       };
-      ajax(analyticsEnpointUrl, callbacks, JSON.stringify(payload), {method: 'POST', contentType: 'application/json'});
+      ajax(analyticsEndpointUrl, callbacks, JSON.stringify(payload), {method: 'POST', contentType: 'application/json'});
     }
   }
 });
@@ -45,6 +48,12 @@ let tealAdapter = Object.assign(adapter({url: analyticsEnpointUrl, analyticsType
 tealAdapter.originEnableAnalytics = tealAdapter.enableAnalytics;
 tealAdapter.enableAnalytics = function(config) {
   initOptions = config.options || {};
+  if (!initOptions.account) {
+    logError('Teal Analytics - account is required for initialisation');
+    isAdapterEnabled = false;
+  } else {
+    isAdapterEnabled = true;
+  }
   tealAdapter.originEnableAnalytics(config);
 }
 
