@@ -30,7 +30,8 @@ let tealAdapter = Object.assign(adapter({url: analyticsEndpointUrl, analyticsTyp
         origcurrency: bidResponse.originalCurrency || '',
         price: String(bidResponse.cpm || ''),
         size: bidResponse.size || '',
-        url: window.location.href || ''
+        url: window.location.href || '',
+        features: bidResponse.teal?.nativeRendered ? '1' : '0'
       };
       const callbacks = {
         success: function(responseText, xhr) {
