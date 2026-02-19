@@ -21,7 +21,7 @@ import type {VideoBid} from "./bidfactory.ts";
  * Depending on publisher needs
  */
 // TODO: we have a `ttlBuffer` setting
-const ttlBufferInSeconds = 15;
+const ttlBufferInSeconds = 3600;
 
 export const vastLocalCache = new Map();
 
