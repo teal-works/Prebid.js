@@ -23,7 +23,7 @@ import type { AudioBidResponse, VideoBid, VideoBidResponse } from "./bidfactory.
  * Depending on publisher needs
  */
 // TODO: we have a `ttlBuffer` setting
-const ttlBufferInSeconds = 3600;
+const ttlBufferInSeconds = 1800;
 
 export const vastLocalCache = new Map();
 
